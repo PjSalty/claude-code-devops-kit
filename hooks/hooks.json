@@ -1,0 +1,19 @@
+{
+  "_comment": "PreToolUse wiring for the two guards. Paste this hooks block into .claude/settings.json (project) for the team baseline, and into managed-settings.json (root-owned) so it cannot be disabled by a user or the model. $CLAUDE_PROJECT_DIR resolves to the project root at runtime; in managed settings use an absolute path to the installed hooks instead.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Edit|Write|NotebookEdit|Glob|Grep",
+        "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/hooks/guard-credentials.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/hooks/guard-cloud-cli.sh", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

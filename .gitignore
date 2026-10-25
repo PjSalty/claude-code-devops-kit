@@ -1,0 +1,45 @@
+# This kit ships NO secrets and NO state. These patterns stop any from being
+# committed by accident. test/verify.sh also runs a secret scan over staged files.
+
+# Cloud credential material
+**/.aws/
+**/.azure/
+**/.config/gcloud/
+**/.kube/
+**/.oci/
+**/*.pem
+**/*.pfx
+**/*.p12
+**/id_rsa
+**/id_ed25519
+**/*.key
+
+# Environment and secret files
+**/.env
+**/.env.*
+!**/.env.example
+**/*.tfvars
+!**/*.tfvars.example
+**/secrets.*
+**/credentials
+**/*-credentials.json
+**/*-credentials.yaml
+**/*-credentials.yml
+# Never ignore the kit's own guard scripts, whatever the patterns above match.
+!hooks/guard-credentials.sh
+
+# IaC state (never belongs in a dev assistant's repo)
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform/
+**/terraform.tfstate.d/
+
+# Local Claude Code state that is not part of the kit
+.claude/settings.local.json
+.claude/projects/
+.claude/todos/
+logs/
+
+# OS / editor cruft
+.DS_Store
+*.swp

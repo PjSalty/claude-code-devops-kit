@@ -1,0 +1,33 @@
+{
+  "// about": "Recommended runtime for the DevOps kit and the hard boundary (layer L1 in ../SECURITY.md). It mounts ONLY the workspace, sets NO cloud credentials or env, and locks egress to an audited allowlist via init-firewall.sh. A credential file that is not mounted cannot be read; a cloud API that is not allowlisted cannot be reached.",
+
+  "name": "claude-code-devops-kit",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+
+  "// security-note": "Do NOT add bind mounts for ~/.aws, ~/.azure, ~/.config/gcloud, ~/.kube, ~/.oci, ~/.docker, or ~/.ssh. Do NOT forward cloud env vars (AWS_*, AZURE_*, GOOGLE_*, KUBECONFIG, ...) via remoteEnv/containerEnv. Both would defeat the boundary.",
+  "mounts": [],
+  "remoteEnv": {
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+
+  "// caps": "NET_ADMIN/NET_RAW are needed only so init-firewall.sh can install the egress allowlist, and are dropped from the engineer's shell. The container is otherwise unprivileged.",
+  "runArgs": ["--cap-add=NET_ADMIN", "--cap-add=NET_RAW"],
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
+    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": { "minikube": "none" }
+  },
+
+  "// postCreate": "Install the offline validators and Claude Code. Pin versions in your fork. Claude Code install per https://docs.claude.com/en/docs/claude-code/setup .",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iptables ipset jq tflint yamllint hadolint && npm install -g @anthropic-ai/claude-code",
+
+  "// postStart": "Install the egress firewall on every start, before the engineer uses the container.",
+  "postStartCommand": "sudo cp .devcontainer/init-firewall.sh /usr/local/bin/init-firewall.sh && sudo chmod 0755 /usr/local/bin/init-firewall.sh && sudo /usr/local/bin/init-firewall.sh",
+
+  "// managed-settings": "Copy settings/managed-settings.json to /etc/claude-code/managed-settings.json in your image build (root-owned), and the hooks to /opt/claude-code-devops-kit/hooks, so the enforced policy is present in the container.",
+  "remoteUser": "vscode"
+}

@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Project-level defaults for the DevOps kit. Safe to commit. The hard, user-immutable controls live in settings/managed-settings.json; this file is the team baseline and will be overridden by anything the managed file denies. Attribution off, non-essential traffic off, cloud tools and credential paths denied, offline validators pre-allowed, both guard hooks wired.",
+
+  "includeCoAuthoredBy": false,
+
+  "env": {
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+
+  "enableAllProjectMcpServers": false,
+
+  "permissions": {
+    "defaultMode": "default",
+    "allow": [
+      "Bash(terraform fmt:*)",
+      "Bash(terraform validate:*)",
+      "Bash(terraform init -backend=false:*)",
+      "Bash(tofu fmt:*)",
+      "Bash(tofu validate:*)",
+      "Bash(tflint:*)",
+      "Bash(checkov:*)",
+      "Bash(kubeconform:*)",
+      "Bash(kustomize build:*)",
+      "Bash(helm template:*)",
+      "Bash(helm lint:*)",
+      "Bash(hadolint:*)",
+      "Bash(yamllint:*)",
+      "Bash(actionlint:*)",
+      "Bash(conftest test:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [
+      "Read(~/.aws/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.oci/**)",
+      "Read(~/.docker/**)",
+      "Read(~/.ssh/**)",
+      "Read(**/*.tfstate)",
+      "Read(**/*.tfstate.*)",
+      "Read(**/*.tfvars)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/credentials)",
+      "Read(**/.netrc)",
+      "Read(**/.npmrc)",
+      "Read(**/.pgpass)",
+      "Read(**/.terraformrc)",
+      "Edit(~/.aws/**)",
+      "Edit(~/.azure/**)",
+      "Edit(~/.config/gcloud/**)",
+      "Edit(~/.kube/**)",
+      "Edit(~/.ssh/**)",
+      "Edit(**/*.tfstate)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Write(~/.aws/**)",
+      "Write(~/.azure/**)",
+      "Write(~/.config/gcloud/**)",
+      "Write(~/.kube/**)",
+      "Write(~/.ssh/**)",
+      "Bash(aws:*)",
+      "Bash(aws-vault:*)",
+      "Bash(az:*)",
+      "Bash(gcloud:*)",
+      "Bash(gsutil:*)",
+      "Bash(bq:*)",
+      "Bash(doctl:*)",
+      "Bash(linode-cli:*)",
+      "Bash(scw:*)",
+      "Bash(ibmcloud:*)",
+      "Bash(aliyun:*)",
+      "Bash(oci:*)",
+      "Bash(eksctl:*)",
+      "Bash(kubectl:*)",
+      "Bash(oc:*)",
+      "Bash(argocd:*)",
+      "Bash(flux:*)",
+      "Bash(pulumi:*)",
+      "Bash(vault:*)",
+      "Bash(op:*)",
+      "Bash(doppler:*)",
+      "Bash(sops:*)",
+      "Bash(terraform apply:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(terraform import:*)",
+      "Bash(terraform state:*)",
+      "Bash(terraform login:*)",
+      "Bash(tofu apply:*)",
+      "Bash(tofu destroy:*)",
+      "Bash(helm install:*)",
+      "Bash(helm upgrade:*)",
+      "Bash(helm uninstall:*)",
+      "Bash(docker push:*)",
+      "Bash(docker login:*)",
+      "Bash(docker pull:*)",
+      "Bash(skopeo:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(nc:*)",
+      "Bash(ncat:*)",
+      "Bash(telnet:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(sftp:*)",
+      "Bash(rsync:*)",
+      "Bash(socat:*)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Edit|Write|NotebookEdit|Glob|Grep",
+        "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/hooks/guard-credentials.sh", "timeout": 10 }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/hooks/guard-cloud-cli.sh", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}

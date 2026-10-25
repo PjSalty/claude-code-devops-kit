@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Recommended per-user defaults. Merge into ~/.claude/settings.json. These are conveniences and a safety net; they are NOT the enforced boundary (a user can edit their own settings). The boundary is managed-settings.json plus the devcontainer. See SECURITY.md.",
+
+  "includeCoAuthoredBy": false,
+  "enableAllProjectMcpServers": false,
+  "cleanupPeriodDays": 7,
+
+  "env": {
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+
+  "permissions": {
+    "defaultMode": "default",
+    "deny": [
+      "Read(~/.aws/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.oci/**)",
+      "Read(~/.docker/**)",
+      "Read(~/.ssh/**)",
+      "Read(**/*.tfstate)",
+      "Read(**/*.tfstate.*)",
+      "Read(**/*.tfvars)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/credentials)",
+      "Read(**/.netrc)",
+      "Bash(aws:*)",
+      "Bash(az:*)",
+      "Bash(gcloud:*)",
+      "Bash(kubectl:*)",
+      "Bash(vault:*)",
+      "Bash(sops:*)",
+      "Bash(terraform apply:*)",
+      "Bash(terraform destroy:*)",
+      "Bash(helm install:*)",
+      "Bash(helm upgrade:*)",
+      "Bash(docker push:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(ssh:*)"
+    ]
+  }
+}
