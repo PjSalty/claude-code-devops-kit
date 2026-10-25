@@ -20,7 +20,11 @@ bad()  { printf '  FAIL  %s\n' "$1"; fail=$((fail+1)); }
 decision() {
   local out
   out="$(printf '%s' "$2" | "$1" 2>/dev/null)"
-  if printf '%s' "$out" | jq -e '.hookSpecificOutput.permissionDecision=="deny"' >/dev/null 2>&1; then
+  # Empty output means "no objection". Test it before calling jq: jq 1.6's -e exits 0
+  # on empty input (1.7+ exits 4), which would misread every allow as a deny.
+  if [ -z "$out" ]; then
+    echo allow
+  elif printf '%s' "$out" | jq -e '.hookSpecificOutput.permissionDecision=="deny"' >/dev/null 2>&1; then
     echo deny
   else
     echo allow
@@ -41,14 +45,14 @@ echo "== 1. Lint"
 command -v jq >/dev/null || { echo "jq is required"; exit 2; }
 while IFS= read -r f; do
   if jq -e . "$f" >/dev/null 2>&1; then ok "json valid: ${f#"$root"/}"; else bad "json invalid: ${f#"$root"/}"; fi
-done < <(find "$root" -name '*.json' -not -path '*/.git/*')
+done < <(find "$root" -name '*.json' ! -path '*/.git/*')
 while IFS= read -r f; do
   if bash -n "$f" 2>/dev/null; then ok "shell parses: ${f#"$root"/}"; else bad "shell parse error: ${f#"$root"/}"; fi
-done < <(find "$root" -name '*.sh' -not -path '*/.git/*')
+done < <(find "$root" -name '*.sh' ! -path '*/.git/*')
 if command -v shellcheck >/dev/null; then
   while IFS= read -r f; do
     if shellcheck -S warning "$f" >/dev/null 2>&1; then ok "shellcheck clean: ${f#"$root"/}"; else bad "shellcheck findings: ${f#"$root"/}"; fi
-  done < <(find "$root" -name '*.sh' -not -path '*/.git/*')
+  done < <(find "$root" -name '*.sh' ! -path '*/.git/*')
 else
   echo "  (shellcheck not installed; skipping, not a failure)"
 fi
@@ -85,11 +89,15 @@ expect "non-bash tool ignored"      "$cloud_hook" allow "$(read_input Read ./mai
 echo "== 3. Secret scan (the kit must ship no secrets)"
 # Look for private-key headers and common cloud key shapes in tracked files.
 hits=0
-if grep -RInE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' "$root" --include='*' --exclude-dir=.git >/dev/null 2>&1; then
-  echo "  FAIL  a private key is present in the tree"; hits=$((hits+1))
+# Portable across GNU (Linux) and BSD (macOS) tools: list files with find and grep
+# each, instead of GNU-only grep --include/--exclude-dir.
+pk="$(find "$root" -type f ! -path '*/.git/*' -exec grep -lE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----' {} \; 2>/dev/null || true)"
+if [ -n "$pk" ]; then
+  echo "  FAIL  a private key is present in: $pk"; hits=$((hits+1))
 fi
-if grep -RInE -- '(AKIA|ASIA)[A-Z0-9]{16}' "$root" --exclude-dir=.git >/dev/null 2>&1; then
-  echo "  FAIL  an AWS access key id is present in the tree"; hits=$((hits+1))
+ak="$(find "$root" -type f ! -path '*/.git/*' -exec grep -lE -- '(AKIA|ASIA)[A-Z0-9]{16}' {} \; 2>/dev/null || true)"
+if [ -n "$ak" ]; then
+  echo "  FAIL  an AWS access key id is present in: $ak"; hits=$((hits+1))
 fi
 if [ "$hits" -eq 0 ]; then ok "no private keys or cloud key ids in the tree"; else fail=$((fail+hits)); fi
 

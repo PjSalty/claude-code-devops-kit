@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Default-deny egress for the Claude Code devcontainer (layer L1, network half).
 #
+# Linux only, by design: it uses iptables, ipset, and getent, and it runs INSIDE the
+# Linux devcontainer. On a macOS host the boundary is this same Linux container
+# (Docker Desktop, Colima, OrbStack, ...), not a host firewall, so it works there too.
+#
 # After this runs, outbound traffic is dropped except to an explicit allowlist: DNS,
 # the Anthropic API, the package registries, and the git host needed to build. Every
 # cloud provider API endpoint and the instance metadata service are unreachable.
@@ -71,8 +75,14 @@ iptables -P OUTPUT  DROP
 echo "init-firewall: egress locked to $(ipset list allowed | grep -c '^[0-9]') allowlisted IPs; metadata services rejected."
 
 # Smoke test: the metadata endpoint must NOT be reachable. Fail the container if it is.
-if timeout 3 bash -c 'exec 3<>/dev/tcp/169.254.169.254/80' 2>/dev/null; then
-  echo "init-firewall: FATAL: metadata endpoint reachable after firewall setup" >&2
-  exit 1
+# timeout ships with coreutils in every mainstream Linux image; skip loudly if absent
+# rather than risk a hang.
+if command -v timeout >/dev/null 2>&1; then
+  if timeout 3 bash -c 'exec 3<>/dev/tcp/169.254.169.254/80' 2>/dev/null; then
+    echo "init-firewall: FATAL: metadata endpoint reachable after firewall setup" >&2
+    exit 1
+  fi
+  echo "init-firewall: verified metadata endpoint is unreachable."
+else
+  echo "init-firewall: WARNING: 'timeout' not found; metadata smoke test skipped (install coreutils)." >&2
 fi
-echo "init-firewall: verified metadata endpoint is unreachable."

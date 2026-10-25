@@ -10,7 +10,7 @@ carry the guarantee.
 | Hook | Fires on | Denies |
 |------|----------|--------|
 | `guard-credentials.sh` | `Bash`, `Read`, `Edit`, `Write`, `NotebookEdit`, `Glob`, `Grep` | reads/writes of credential stores, SSH keys, IaC state, `*.tfvars`, `.env*`, `*.pem`, `.netrc`, generic `credentials`/`secret*` files |
-| `guard-cloud-cli.sh` | `Bash` | the metadata IP, cloud/secret CLIs (`aws`/`az`/`gcloud`/`kubectl`/`vault`/`sops`/...), live IaC verbs (`terraform apply`, `helm install`, `docker push`), and outbound net tools (`curl`/`wget`/`ssh`/...) |
+| `guard-cloud-cli.sh` | `Bash` | the metadata IP, cloud/cluster/secret CLIs (`aws`/`az`/`gcloud`/`kubectl`/`vault`/`sops`/...), platform API clients (`gh`, `glab`), live IaC and deploy verbs (`terraform apply`, `cdk deploy`, `helm install`, `docker push`), `git push`, and outbound net tools (`curl`/`wget`/`ssh`/...) |
 
 ## Contract
 
@@ -34,8 +34,10 @@ the policy.
   project or user cannot register competing hooks or drop these. See
   [../settings/README.md](../settings/README.md).
 
-Requirements: `bash`, `jq`, and `grep` with ERE (`-E`). Both are POSIX-ish bash and run
-on Linux and macOS.
+Requirements: a POSIX `/bin/sh` and `jq` 1.6 or newer; no bash. Every decision runs
+inside one `jq` program, so results are identical on Linux and macOS. If `jq` is
+missing or the input cannot be parsed, the hooks fail closed (deny). See
+[../COMPATIBILITY.md](../COMPATIBILITY.md) for the verified platforms.
 
 ## Tuning
 

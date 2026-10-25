@@ -2,7 +2,8 @@
   "// about": "Recommended runtime for the DevOps kit and the hard boundary (layer L1 in ../SECURITY.md). It mounts ONLY the workspace, sets NO cloud credentials or env, and locks egress to an audited allowlist via init-firewall.sh. A credential file that is not mounted cannot be read; a cloud API that is not allowlisted cannot be reached.",
 
   "name": "claude-code-devops-kit",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "// image": "Pinned to an exact release tag. For a reviewed deployment pin by digest (image@sha256:...) and commit the devcontainer-lock.json the devcontainer CLI writes, which pins the features by digest too.",
+  "image": "mcr.microsoft.com/devcontainers/base:3.0.10-ubuntu24.04",
 
   "// security-note": "Do NOT add bind mounts for ~/.aws, ~/.azure, ~/.config/gcloud, ~/.kube, ~/.oci, ~/.docker, or ~/.ssh. Do NOT forward cloud env vars (AWS_*, AZURE_*, GOOGLE_*, KUBECONFIG, ...) via remoteEnv/containerEnv. Both would defeat the boundary.",
   "mounts": [],
@@ -19,11 +20,12 @@
   "features": {
     "ghcr.io/devcontainers/features/node:1": { "version": "lts" },
     "ghcr.io/devcontainers/features/terraform:1": {},
-    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": { "minikube": "none" }
+    "// kubectl-helm-minikube": "version none skips kubectl (the kit never talks to a cluster); helm stays for helm template / helm lint; minikube none.",
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": { "version": "none", "minikube": "none" }
   },
 
-  "// postCreate": "Install the offline validators and Claude Code. Pin versions in your fork. Claude Code install per https://docs.claude.com/en/docs/claude-code/setup .",
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iptables ipset jq tflint yamllint hadolint && npm install -g @anthropic-ai/claude-code",
+  "// postCreate": "apt installs only packages that exist on Ubuntu 24.04. tflint comes from the terraform feature (its tflint option defaults to latest). hadolint, kubeconform, kustomize, checkov and actionlint are optional: install pinned official releases in your image build. Claude Code is pinned to the version this kit was verified against.",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y iptables ipset jq yamllint && npm install -g @anthropic-ai/claude-code@2.1.310",
 
   "// postStart": "Install the egress firewall on every start, before the engineer uses the container.",
   "postStartCommand": "sudo cp .devcontainer/init-firewall.sh /usr/local/bin/init-firewall.sh && sudo chmod 0755 /usr/local/bin/init-firewall.sh && sudo /usr/local/bin/init-firewall.sh",

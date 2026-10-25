@@ -110,13 +110,13 @@
       {
         "matcher": "Bash|Read|Edit|Write|NotebookEdit|Glob|Grep",
         "hooks": [
-          { "type": "command", "command": "/opt/claude-code-devops-kit/hooks/guard-credentials.sh", "timeout": 10 }
+          { "type": "command", "command": "\"/opt/claude-code-devops-kit/hooks/guard-credentials.sh\"", "timeout": 10 }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "/opt/claude-code-devops-kit/hooks/guard-cloud-cli.sh", "timeout": 10 }
+          { "type": "command", "command": "\"/opt/claude-code-devops-kit/hooks/guard-cloud-cli.sh\"", "timeout": 10 }
         ]
       }
     ]

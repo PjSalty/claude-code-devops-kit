@@ -68,8 +68,12 @@ precedence are in [settings/README.md](settings/README.md).
 ## Compatibility
 
 Verified against **Claude Code 2.1.310**. Settings and sandbox schemas evolve; pin
-your Claude Code version (`autoUpdates` is disabled in the managed settings) and
-re-run `test/verify.sh` after any upgrade.
+your Claude Code version (the shipped settings disable the auto-updater) and re-run
+`test/verify.sh` after any upgrade.
+
+The hooks need only a POSIX `/bin/sh` and `jq` 1.6+. They are tested on Alpine,
+Debian, Ubuntu, Fedora, Rocky Linux, Amazon Linux, and Arch, and from `sh`, `bash`, and
+`zsh`. See [COMPATIBILITY.md](COMPATIBILITY.md) for the matrix and macOS notes.
 
 ## License
 
